@@ -1,0 +1,36 @@
+---
+
+- name: "Generate systemd Odoo service"
+  template:
+        src=odoo.service
+        dest=/etc/systemd/system/{{ odoo_service }}.service
+        owner=root group=root mode=0755
+        force=yes
+        backup=yes
+
+- name: ensure odoo service directory
+  file:
+    path: "{{ odoo_config_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_group }}"
+
+- name: Reload Systemd
+  systemd:
+    daemon-reload: yes
+  when: ansible_service_mgr == 'systemd'
+
+- name: Restart Odoo
+  service:
+    name: "{{ odoo_service }}"
+    state: restarted
+  when: odoo_init == True
+
+- name: "Enable Odoo service"
+  service: name={{ odoo_service }} enabled=yes state=started
+  when: odoo_init == True
+
+- name: "Disable Odoo service"
+  service: name={{ odoo_service }} enabled=no state=stopped
+  when: odoo_init == False

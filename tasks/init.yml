@@ -1,0 +1,22 @@
+---
+
+- name: "Check if we need to initilaize the odoo data base: {{ odoo_config_db_name }}"
+  postgresql_query:
+    db: "{{ odoo_config_db_name }}"
+    login_user: "{{ odoo_user }}"
+    query: "SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'ir_model');"
+  register: _db_result
+  become: true
+  become_user: "{{ odoo_user }}"
+
+- debug:
+    var:  _db_result
+
+- debug:
+    msg: "{{ odoo_serverdir }}/odoo-bin{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} -i base --config {{ odoo_config_file }} --stop-after-init"
+
+- name: "initialize the odoo database: {{ odoo_config_db_name }}"
+  shell: "{{ odoo_serverdir }}/odoo-bin{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} -i base --config {{ odoo_config_file }} --stop-after-init"
+  become: true
+  become_user: "{{ odoo_user }}"
+  when: not _db_result.query_result[0].exists

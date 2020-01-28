@@ -1,0 +1,11 @@
+
+# - import_tasks: reportlab.yml
+#   tags:
+#     - odoo
+#     - odoo_reportlab
+
+- include_tasks: config.yml
+
+- include_tasks: init.yml
+
+- include_tasks: service.yml

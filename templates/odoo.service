@@ -1,0 +1,16 @@
+[Unit]
+Description={{ odoo_service }}
+After=network.target
+
+[Service]
+Type=simple
+User={{ odoo_user }}
+WorkingDirectory={{ odoo_workdir }}
+ExecStart={{ odoo_serverdir }}/odoo-bin{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} --config {{ odoo_config_file }}
+KillMode=mixed
+{% for name, value in odoo_init_env.items() | list %}
+Environment={{ name }}={{ value }}
+{% endfor %}
+
+[Install]
+WantedBy=multi-user.target

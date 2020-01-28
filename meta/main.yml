@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: Maik Derstappen
+  description: Ansible role to install Odoo from a Git OCA repository, and configure it.
+  company: Derico
+  license: GPLv3
+  min_ansible_version: 2.9
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - stretch
+  categories:
+    - web
+dependencies: []
