@@ -50,6 +50,7 @@ odoo_pypi_packages:
     - qrcode
     - pyldap
     - vobject
+    - odoo12-addon-muk-web-theme
 
 odoo_nodejs_apt_package: "nodejs=6.*"
 odoo_nodejs_apt_repo: "node_6.x"

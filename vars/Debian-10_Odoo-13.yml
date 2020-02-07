@@ -6,6 +6,7 @@ odoo_debian_packages:
     - build-essential
     - python3-dev
     - python3-pip
+    - Wkhtmltopdf
     # Python pyldap requirements
     - libldap2-dev
     - libsasl2-dev
