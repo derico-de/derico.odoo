@@ -5,3 +5,9 @@
         owner={{ odoo_user }} group={{ odoo_user }} mode=0600
         force={{ odoo_force_config and 'yes' or 'no' }}
         backup=yes
+
+- name: "Generate Caddy webserver configuration file"
+  template: src=caddy-host.conf dest={{ odoo_caddy_configfile }}
+        owner=caddy group=caddy mode=0662
+        force=yes
+        backup=no
