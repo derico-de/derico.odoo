@@ -6,8 +6,7 @@ After=network.target
 Type=simple
 User={{ odoo_user }}
 WorkingDirectory={{ odoo_workdir }}
-ExecStartPre=+/usr/bin/install -o {{ odoo_user }} -g {{ odoo_user }} -d /run/odoo
-ExecStart={{ odoo_serverdir }}/odoo-bin --config {{ odoo_config_file }}
+ExecStart={{ odoo_serverdir }}/odoo-bin {{ odoo_use_gevent and 'gevent ' or ''}}{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} --config {{ odoo_config_file }}
 KillMode=mixed
 Restart=on-failure
 {% for name, value in odoo_init_env.items() | list %}

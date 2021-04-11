@@ -1,7 +1,11 @@
 ---
 
 - name: Run version tasks for every version
-  include_tasks: version.yml
-  loop: "{{ odoo_versions }}"
+  include_tasks: setup.yml
+  loop: "{{ odoo_setups }}"
   loop_control:
     loop_var: odoo_setup
+  tags:
+    - install
+    - addons
+    - instance

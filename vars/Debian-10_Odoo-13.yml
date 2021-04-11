@@ -6,7 +6,7 @@ odoo_debian_packages:
     - build-essential
     - python3-dev
     - python3-pip
-    - Wkhtmltopdf
+    #- wkhtmltopdf
     # Python pyldap requirements
     - libldap2-dev
     - libsasl2-dev
@@ -17,6 +17,7 @@ odoo_debian_packages:
 
 odoo_pip_executable: "pip3"
 odoo_pypi_packages:
+  - odfpy
   # Straight from the Odoo requirements.txt
 #  - Babel==2.3.4
 #  - chardet==3.0.4
@@ -87,7 +88,7 @@ odoo_pip_build_dependencies:
     - libldap2-dev
     - libsasl2-dev
     - libopenjp2-7-dev
-    - libjpeg-turbo8-dev
+    - libjpeg62-turbo-dev
     - libtiff5-dev
     - libfreetype6-dev
     - liblcms2-dev
@@ -104,7 +105,7 @@ odoo_buildout_build_dependencies:
     - libldap2-dev
     - libsasl2-dev
     - libopenjp2-7-dev
-    - libjpeg-turbo8-dev
+    - libjpeg62-turbo-dev
     - libtiff5-dev
     - libfreetype6-dev
     - liblcms2-dev
@@ -125,4 +126,4 @@ odoo_wkhtmltox_depends:
     - libx11-6
     - libxext6
     - libxrender1
-    - libjpeg-turbo8
+    - libjpeg62-turbo

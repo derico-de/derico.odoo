@@ -1,13 +1,27 @@
 ---
 
-- name: "Generate Odoo configuration file"
+- name: "Generate Odoo configuration file: {{ odoo_service }}"
   template: src=odoo-{{ odoo_version }}.conf dest={{ odoo_config_file }}
         owner={{ odoo_user }} group={{ odoo_user }} mode=0600
         force={{ odoo_force_config and 'yes' or 'no' }}
-        backup=yes
+        backup=no
+  tags: instance
 
-- name: "Generate Caddy webserver configuration file"
+- name: "Generate Caddy odoo configuration file: {{ odoo_service }}"
   template: src=caddy-host.conf dest={{ odoo_caddy_configfile }}
         owner=caddy group=caddy mode=0662
         force=yes
         backup=no
+        validate="/usr/local/bin/caddy -validate -conf %s"
+  tags: instance
+
+- name: "Generate Caddy website_domain configuration file: {{ odoo_service }}"
+  template: src=caddy-host-website.conf dest=/etc/caddy/conf.d/website_{{ domain }}.conf
+        owner=caddy group=caddy mode=0662
+        force=yes
+        backup=no
+        validate="/usr/local/bin/caddy -validate -conf %s"
+  loop: "{{ odoo_instance.website_domains }}"
+  loop_control:
+    loop_var: domain
+  tags: instance

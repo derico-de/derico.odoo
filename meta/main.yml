@@ -12,4 +12,4 @@ galaxy_info:
         - stretch
   categories:
     - web
-dependencies: []
+dependencies: [derico.odoo_addons]

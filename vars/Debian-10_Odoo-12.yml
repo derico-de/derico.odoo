@@ -77,7 +77,7 @@ odoo_pip_build_dependencies:
     - libldap2-dev
     - libsasl2-dev
     - libopenjp2-7-dev
-    - libjpeg-turbo8-dev
+    - libjpeg62-turbo-dev
     - libtiff5-dev
     - libfreetype6-dev
     - liblcms2-dev
@@ -94,7 +94,7 @@ odoo_buildout_build_dependencies:
     - libldap2-dev
     - libsasl2-dev
     - libopenjp2-7-dev
-    - libjpeg-turbo8-dev
+    - libjpeg62-turbo-dev
     - libtiff5-dev
     - libfreetype6-dev
     - liblcms2-dev
@@ -115,4 +115,4 @@ odoo_wkhtmltox_depends:
     - libx11-6
     - libxext6
     - libxrender1
-    - libjpeg-turbo8
+    - libjpeg62-turbo

@@ -5,7 +5,14 @@
 #     - odoo_reportlab
 
 - include_tasks: config.yml
+  tags: instance
 
 - include_tasks: init.yml
+  tags: instance
 
 - include_tasks: service.yml
+  tags: instance
+
+- include_tasks: uwsgi.yml
+  when: odoo_instance.server_type == 'uwsgi'
+  tags: instance

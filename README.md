@@ -30,8 +30,9 @@ Ansible role to install and configure multiple Odoo instances on one host. It us
 ### host_vars/odoo01:
 
 ```yaml
-odoo_versions:
+odoo_setups:
   - name: 12.0
+    version: 12.0
     odoo_user: odoo
     instances:
       - name: example1
@@ -39,6 +40,7 @@ odoo_versions:
         config_http_port: 8000
         config_longpolling_port: 9000
   - name: 13.0
+    version: 13.0
     odoo_user: odoo
     instances:
       - name: example2
@@ -46,3 +48,22 @@ odoo_versions:
         config_http_port: 8010
         config_longpolling_port: 9010
 ```
+
+### tags
+
+Most of the time you want to use:
+
+`--tags "addons,instance"` or just `--tags "instance"` if you don't have changes for the addons.
+
+#### install
+
+all tasks for the initial installation
+
+#### addons
+
+tasks for addon repositories checkouts
+
+#### instance
+
+Odoo instance configuration, like uWSGI Emperor files and Systemd services
+

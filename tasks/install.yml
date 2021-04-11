@@ -57,6 +57,7 @@
     version: "{{ odoo_version }}"
     depth: "{{ odoo_repo_depth }}"
     umask: "0002"
+  ignore_errors: yes
   register: _odoo_checkout_result
   become: true
   become_user: "{{ odoo_user }}"
@@ -91,6 +92,23 @@
     virtualenv_command: pyvenv
   ignore_errors: yes
   when: _odoo_checkout_result.changed
+
+- name: "[{{ odoo_version }}] Install odoo in virtualenv"
+  pip:
+    name: .
+    extra_args: "-e"
+    chdir: "{{ odoo_serverdir }}"
+    virtualenv: "{{ odoo_workdir }}"
+    virtualenv_command: pyvenv
+  ignore_errors: yes
+  #when: _odoo_checkout_result.changed
+
+- name: "[{{ odoo_version }}] Install odoo_pypi_packages"
+  pip:
+    name: "{{ odoo_pypi_packages }}"
+    virtualenv: "{{ odoo_workdir }}"
+    virtualenv_command: pyvenv
+  ignore_errors: yes
 
   #loop: "{{ odoo_setups }}"
   #register: _odoo_installs

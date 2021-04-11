@@ -1,0 +1,17 @@
+[Unit]
+Description={{ odoo_service }}_cronworker
+After=network.target
+
+[Service]
+Type=simple
+User={{ odoo_user }}
+WorkingDirectory={{ odoo_workdir }}
+ExecStart={{ odoo_serverdir }}/odoo-bin -d {{ odoo_config_db_name }} --no-http --limit-memory-soft=262144000 --addons-path=/srv/odoo/odoo13/server/odoo/addons,/srv/odoo/odoo13/server/addons --log-level=info --logfile=/var/log/odoo/{{ odoo_service }}_cron.log
+KillMode=mixed
+Restart=on-failure
+{% for name, value in odoo_init_env.items() | list %}
+Environment={{ name }}={{ value }}
+{% endfor %}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+
+- name: "Generate uWSGI Emperar Vassal file for {{ odoo_service }}"
+  template:
+        src=odoo-vassal.ini
+        dest=/etc/uwsgi/vassals/{{ odoo_service }}.ini
+        owner=odoo group=odoo mode=0644
+        force=yes
+  register: vassal_ini
+  tags: instance
+
+- name: "Generate WSGI file for {{ odoo_service }}"
+  template:
+        src=odoo-wsgi.py
+        dest={{ odoo_workdir }}/wsgi_{{ odoo_service }}.py
+        owner=odoo group=odoo mode=0644
+        force=yes
+  register: wsgi_py
+  tags: instance
+
+- name: reload uwsgi emperor vassal
+  command: "touch /etc/uwsgi/vassals/{{ odoo_service }}.ini"
+  when: vassal_ini.changed or wsgi_py.changed
+  tags: instance

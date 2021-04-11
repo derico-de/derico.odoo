@@ -1,5 +1,14 @@
 ---
 
+- name: ensure odoo service directory
+  file:
+    path: "{{ odoo_config_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_group }}"
+  tags: instance
+
 - name: "Check if we need to initilaize the odoo data base: {{ odoo_config_db_name }}"
   postgresql_query:
     db: "{{ odoo_config_db_name }}"
@@ -8,15 +17,17 @@
   register: _db_result
   become: true
   become_user: "{{ odoo_user }}"
+  tags: instance
 
-- debug:
-    var:  _db_result
+# - debug:
+#     var:  _db_result
 
-- debug:
-    msg: "{{ odoo_serverdir }}/odoo-bin{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} -i base --config {{ odoo_config_file }} --stop-after-init"
+# - debug:
+#     msg: "{{ odoo_serverdir }}/odoo-bin{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} -i base --config {{ odoo_config_file }} --stop-after-init"
 
 - name: "initialize the odoo database: {{ odoo_config_db_name }}"
   shell: "{{ odoo_serverdir }}/odoo-bin{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} -i base --config {{ odoo_config_file }} --stop-after-init"
   become: true
   become_user: "{{ odoo_user }}"
   when: not _db_result.query_result[0].exists
+  tags: instance
