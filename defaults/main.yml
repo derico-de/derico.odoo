@@ -89,7 +89,7 @@ odoo_config_list_db: False
 odoo_config_log_db: False
 odoo_config_log_level: info
 odoo_config_logfile: /var/log/odoo/{{ odoo_service }}.log
-odoo_config_logrotate: False
+odoo_config_logrotate: True
 odoo_config_longpolling_port: "{{ odoo_instance.config_longpolling_port }}"
 odoo_config_osv_memory_age_limit: 1.0
 odoo_config_osv_memory_count_limit: False
