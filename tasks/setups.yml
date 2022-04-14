@@ -1,0 +1,143 @@
+---
+# create setup folder, odoo config, wsgi file, service
+
+- name: "Ensure odoo_setupdir {{ odoo_setupdir }} exists"
+  file:
+    path: "{{ odoo_setupdir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_group }}"
+
+- name: "Generate Poetry file in {{ odoo_setupdir }}/pyproject.toml"
+  template:
+        src: "pyproject-{{ odoo_version }}.toml"
+        dest: "{{ odoo_setupdir }}/pyproject.toml"
+        owner: "{{ odoo_user }}"
+        group: "{{ odoo_group }}"
+        mode: 0755
+        force: yes
+        backup: no
+
+- name: Check if poetry.lock file exists
+  stat:
+    path: "{{ odoo_setupdir }}/poetry.lock"
+  register: poetry_lock
+
+- name: "Install Odoo and dependencies with Poetry"
+  command:
+    chdir: "{{ odoo_setupdir }}"
+    cmd: "/home/{{ odoo_user }}/.poetry/bin/poetry install"
+    creates: "{{ odoo_setupdir }}/poetry.lock"
+  become: true
+  become_user: "{{ odoo_user }}"
+  become_method: sudo
+  when: poetry_lock.stat.exists != true
+
+- name: Add Odoo addon's from PyPi
+  command:
+    chdir: "{{ odoo_setupdir }}"
+    cmd: "/home/{{ odoo_user }}/.poetry/bin/poetry add {{ ' '.join(odoo_pypi_addons) }}"
+  when: odoo_pypi_addons
+
+- name: Run Poetry update if we have a poetry.lock file
+  command:
+    chdir: "{{ odoo_setupdir }}"
+    cmd: "/home/{{ odoo_user }}/.poetry/bin/poetry update"
+  become: true
+  become_user: "{{ odoo_user }}"
+  become_method: sudo
+  when: poetry_lock.stat.exists == true
+
+- name: "Generate Odoo configuration file: {{ odoo_service }}"
+  template:
+    src: "odoo-{{ odoo_version }}.conf"
+    dest: "{{ odoo_config_file }}"
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_user }}"
+    mode: 0600
+    force: yes
+    backup: no
+
+- name: ensure odoo service directory
+  file:
+    path: "{{ odoo_config_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_group }}"
+
+- name: ensure odoo addons directory
+  file:
+    path: "{{ odoo_setupdir }}/addons"
+    state: directory
+    mode: 0755
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_group }}"
+
+- name: "Check if we need to initilaize the odoo data base: {{ odoo_config_db_name }}"
+  postgresql_query:
+    query: "SELECT 1 FROM pg_database WHERE datname='{{ odoo_config_db_name }}';"
+  register: _db_result
+  become: true
+  become_user: postgres
+  become_method: sudo
+
+- debug:
+    var:  odoo_init_modules
+
+- name: "initialize the odoo database: {{ odoo_config_db_name }}"
+  shell:
+    cmd: "/home/{{ odoo_user }}/.poetry/bin/poetry run odoo -c odoorc.conf{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} -d {{ odoo_config_db_name }} -i base,base_setup,web,{{ ','.join(odoo_init_modules) }} --load-language={{ odoo_load_language }} --stop-after-init"
+    chdir: "{{ odoo_setupdir }}"
+  become: true
+  become_user: "{{ odoo_user }}"
+  become_method: sudo
+  when: not _db_result.rowcount == 1
+
+#- name: Change admin user password
+#  become: true
+#  become_user: "{{ odoo_user }}"
+#  expect:
+#    command: "/home/{{ odoo_user }}/.poetry/bin/poetry run odoo shell -c odoorc.conf{{ odoo_logfile and ' --logfile %s' % odoo_logfile }} --addons-path={{ ','.join(odoo_config_addons_path) }} -d {{ odoo_config_db_name }}"
+#    chdir: "{{ odoo_setupdir }}"
+#    responses:
+#      '>>> ':
+#        - user = env['res.users'].search([('login', '=', 'admin')])
+#        - user.name = 'Odoo Admin'
+#        - user.login = 'admin'
+#        - user.password = '{{ odoo_config_admin_passwd }}'
+#        - self.env.cr.commit()
+#        - quit()
+
+- import_tasks: service.yml
+  tags: setup
+
+- name: "Generate Caddy odoo configuration file: {{ odoo_service }}"
+  template:
+    src: caddy-host.conf
+    dest: "{{ odoo_caddy_configfile }}"
+    owner: caddy
+    group: caddy
+    mode: 0662
+    force: yes
+    backup: no
+    validate: "/usr/local/bin/caddy -validate -conf %s"
+  notify:
+  - reload caddy
+
+- name: "Generate Caddy website_domain configuration file: {{ odoo_service }}"
+  template:
+    src: caddy-host-website.conf
+    dest: "/etc/caddy/conf.d/website_{{ domain }}.conf"
+    owner: caddy
+    group: caddy
+    mode: 0662
+    force: yes
+    backup: no
+    validate: "/usr/local/bin/caddy -validate -conf %s"
+  loop: "{{ odoo_website_domains }}"
+  loop_control:
+    loop_var: domain
+  notify:
+  - reload caddy

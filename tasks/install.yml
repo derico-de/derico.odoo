@@ -1,54 +1,49 @@
 ---
 
-- shell: "test -f {{ prevent_apt_run }} && echo true || echo false"
-  register: prevent_apt_run_result
-  ignore_errors: yes
+#- shell: "test -f {{ prevent_apt_run }} && echo true || echo false"
+#  register: prevent_apt_run_result
+#  ignore_errors: yes
 
-- name: apt run block
-  block:
+#- name: apt run block
+#  block:
 
-    - name: Add odoo group
-      group: name={{ odoo_group }}
+- name: Add odoo group
+  group: name={{ odoo_group }}
 
-    - name: Add odoo user
-      user: name="{{ odoo_user }}" shell=/bin/bash groups=odoo append=yes
+- name: Add odoo user
+  user: name="{{ odoo_user }}" shell=/bin/bash groups=odoo append=yes
 
-    - name: Update apt cache if needed.
-      apt: update_cache=yes cache_valid_time=3600
+- name: Update apt cache if needed.
+  apt: update_cache=yes cache_valid_time=3600
 
-    - name: Ensure required generic tools packages
-      apt:
-        state: latest
-        name: "{{ item }}"
-      loop: "{{ odoo_required_tools }}"
+- name: Ensure required generic tools packages
+  apt:
+    pkg: "{{ odoo_required_tools }}"
 
-    - name: Install Odoo dependencies
-      apt:  pkg="{{ item }}"
-            state=present
-            update_cache="{{ odoo_apt_update_cache }}"
-            cache_valid_time="{{ odoo_apt_cache_valid_time }}"
-      loop: "{{ odoo_debian_packages }}"
+- name: Install Odoo dependencies
+  apt:
+    pkg: "{{ odoo_debian_packages }}"
 
-    - name: ensure odoo config directory
-      file:
-        path: "/etc/odoo"
-        state: directory
-        mode: 0755
-        owner: "{{ odoo_user }}"
-        group: "{{ odoo_group }}"
+#- name: ensure odoo config directory
+#  file:
+#    path: "/etc/odoo"
+#    state: directory
+#    mode: 0755
+#    owner: "{{ odoo_user }}"
+#    group: "{{ odoo_group }}"
 
-    - name: ensure odoo target directory
-      file:
-        path: "{{ odoo_workdir }}"
-        state: directory
-        mode: 0755
-        owner: "{{ odoo_user }}"
-        group: "{{ odoo_group }}"
+- name: ensure odoo target directory
+  file:
+    path: "{{ odoo_workdir }}"
+    state: directory
+    mode: 0755
+    owner: "{{ odoo_user }}"
+    group: "{{ odoo_group }}"
 
-    - name: add a marker file, to prevent apt run all the time
-      command: "touch {{prevent_apt_run}}"
-
-  when: prevent_apt_run_result.stdout == 'false'
+#- name: add a marker file, to prevent apt run all the time
+#  command: "touch {{prevent_apt_run}}"
+#
+#  when: prevent_apt_run_result.stdout == 'false'
 
 - name: "[{{ odoo_version }}] checkout odoo from OCA"
   git:
@@ -62,10 +57,30 @@
   become: true
   become_user: "{{ odoo_user }}"
 
-  #loop: "{{ odoo_setups }}"
-  #register: _odoo_checkouts
-  #async: 1000
-  #poll: 0
+- name: "Get Poetry install script"
+  get_url:
+    url: "https://raw.githubusercontent.com/python-poetry/poetry/1.1.6/get-poetry.py"
+    dest: "/home/{{ odoo_user }}/get-poetry.py"
+  become: true
+  become_user: "{{ odoo_user }}"
+
+- name: "Install Poetry"
+  command:
+    chdir: "/home/{{ odoo_user }}"
+    cmd: python3 get-poetry.py
+    creates: "/home/{{ odoo_user }}/.poetry"
+  become: true
+  become_user: "{{ odoo_user }}"
+
+- name: Add ~/.local/bin path to system-wide $PATH.
+  copy:
+    dest: /etc/profile.d/local-bin-path.sh
+    content: 'PATH=$PATH:~/.local/bin'
+
+- name: Add ~/.poetry/bin path to system-wide $PATH.
+  copy:
+    dest: /etc/profile.d/poetry-bin-path.sh
+    content: 'PATH=$PATH:~/.local/bin'
 
 # - name: fix odoo checkout permissions
 #   file:
@@ -76,45 +91,36 @@
 #     group: "{{ odoo_group }}"
 #     recurse: yes
 
-#- name: Wait for checkouts to finish
-#  async_status:
-#    jid: "{{ item.ansible_job_id }}"
-#  register: _jobs
-#  until: _jobs.finished
-#  delay: 6
-#  retries: 10
-#  loop: "{{ _odoo_checkouts.results }}"
-
-- name: "[{{ odoo_version }}] Install requirements in a virtualenv"
-  pip:
-    requirements: "{{ odoo_serverdir }}/requirements.txt"
-    virtualenv: "{{ odoo_workdir }}"
-    virtualenv_command: pyvenv
-  ignore_errors: yes
-  when: _odoo_checkout_result.changed
-
-- name: "[{{ odoo_version }}] Install odoo in virtualenv"
-  pip:
-    name: .
-    extra_args: "-e"
-    chdir: "{{ odoo_serverdir }}"
-    virtualenv: "{{ odoo_workdir }}"
-    virtualenv_command: pyvenv
-  ignore_errors: yes
-  #when: _odoo_checkout_result.changed
-
-- name: "[{{ odoo_version }}] Install odoo_pypi_packages"
-  pip:
-    name: "{{ odoo_pypi_packages }}"
-    virtualenv: "{{ odoo_workdir }}"
-    virtualenv_command: pyvenv
-  ignore_errors: yes
-
-  #loop: "{{ odoo_setups }}"
-  #register: _odoo_installs
-  #async: 300
-  #poll: 0
-
+#- name: "[{{ odoo_version }}] Install requirements in a virtualenv"
+#  pip:
+#    requirements: "{{ odoo_serverdir }}/requirements.txt"
+#    virtualenv: "{{ odoo_workdir }}"
+#    virtualenv_command: pyvenv
+#  ignore_errors: yes
+#  when: _odoo_checkout_result.changed
+#
+#- name: "[{{ odoo_version }}] Install odoo in virtualenv"
+#  pip:
+#    name: .
+#    extra_args: "-e"
+#    chdir: "{{ odoo_serverdir }}"
+#    virtualenv: "{{ odoo_workdir }}"
+#    virtualenv_command: pyvenv
+#  ignore_errors: yes
+#  #when: _odoo_checkout_result.changed
+#
+#- name: "[{{ odoo_version }}] Install odoo_pypi_packages"
+#  pip:
+#    name: "{{ odoo_pypi_packages }}"
+#    virtualenv: "{{ odoo_workdir }}"
+#    virtualenv_command: pyvenv
+#  ignore_errors: yes
+#
+#  #loop: "{{ odoo_setups }}"
+#  #register: _odoo_installs
+#  #async: 300
+#  #poll: 0
+#
 #- name: Wait for installs to finish
 #  async_status:
 #    jid: "{{ item.ansible_job_id }}"

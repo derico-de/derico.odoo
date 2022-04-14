@@ -1,6 +1,33 @@
 # derico.odoo
 
-Ansible role to install and configure multiple Odoo instances on one host. It uses by default the OCB repository from the OCA.
+Ansible role to install and configure multiple Odoo instances on one host. It uses by default the OCB repository from the OCA and installs addons from PyPi via Poetry.
+
+## Structure
+
+This role will create the following Odoo structure.
+
+### odoo_rootdir
+
+  /srv/odoo
+
+### odoo_workdir
+
+For every Odoo version we create a working directory.
+
+  /srv/odoo/o14
+
+### odoo_checkoutdir
+
+Inside the workdir we checkout Odoo into the repo directory. This checkout is shared beetween all Odoo setups in this version.
+
+  /srv/odoo/o14/repo
+
+### odoo_setupdir
+
+For every Odoo setup we create a folder with the name of the odoo_setups hostname in the workdir directory.
+Inside this directory we will have the configuration and wsgi files for this Odoo setup.
+
+  /src/odoo/o14/odoo14-demo.derico.de
 
 ## Minimum Ansible Version:
 
@@ -8,7 +35,7 @@ Ansible role to install and configure multiple Odoo instances on one host. It us
 
 ## Supported versions and systems
 
-| System / Odoo       | 12.0 | 13.0 |
+| System / Odoo       | 13.0 | 14.0 |
 |---------------------|------|------|
 | Debian 10 (buster)  | yes  | yes  |
 

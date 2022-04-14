@@ -7,47 +7,39 @@
         owner=root group=root mode=0555
         force=yes
         backup=no
-  when: odoo_instance.server_type == 'odoo'
-  tags: instance
 
-- name: "Generate systemd Odoo cronworker service: {{ odoo_service }}"
-  template:
-        src=odoo-cron.service
-        dest=/etc/systemd/system/{{ odoo_service }}_cronworker.service
-        owner=root group=root mode=0555
-        force=yes
-        backup=no
-  tags: instance
+#- name: "Generate systemd Odoo cronworker service: {{ odoo_service }}"
+#  template:
+#        src=odoo-cron.service
+#        dest=/etc/systemd/system/{{ odoo_service }}_cronworker.service
+#        owner=root group=root mode=0555
+#        force=yes
+#        backup=no
 
 - name: "Reload Systemd: {{ odoo_service }}"
   systemd:
     daemon-reload: yes
   when: ansible_service_mgr == 'systemd'
-  tags: instance
 
 - name: "Restart Odoo: {{ odoo_service }}"
   service:
     name: "{{ odoo_service }}"
     state: restarted
-  when: odoo_instance.server_type == 'odoo'
   tags:
-    - instance
     - install
 
-- name: "Restart Odoo: {{ odoo_service }}_cronworker"
-  service:
-    name: "{{ odoo_service }}_cronworker"
-    state: restarted
-  tags:
-    - instance
-    - install
-  # TODO: reduce restarts when not needed
+#- name: "Restart Odoo: {{ odoo_service }}_cronworker"
+#  service:
+#    name: "{{ odoo_service }}_cronworker"
+#    state: restarted
+#  tags:
+#    - instance
+#    - install
+#  # TODO: reduce restarts when not needed
 
 - name: "Enable Odoo service: {{ odoo_service }}"
   service: name={{ odoo_service }} enabled=yes state=started
-  when: odoo_instance.server_type == 'odoo'
-  tags: instance
 
-- name: "Enable Odoo service: {{ odoo_service }}_cronworker"
-  service: name="{{ odoo_service }}_cronworker" enabled=yes state=started
-  tags: instance
+#- name: "Enable Odoo service: {{ odoo_service }}_cronworker"
+#  service: name="{{ odoo_service }}_cronworker" enabled=yes state=started
+#  tags: instance

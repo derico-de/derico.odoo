@@ -5,9 +5,9 @@ After=network.target
 [Service]
 Type=simple
 User={{ odoo_user }}
-WorkingDirectory={{ odoo_workdir }}
+WorkingDirectory={{ odoo_setupdir }}
 ExecStartPre=+/usr/bin/install -o {{ odoo_user }} -g {{ odoo_user }} -d /run/odoo
-ExecStart={{ odoo_serverdir }}/odoo-bin --config {{ odoo_config_file }}
+ExecStart=/home/{{ odoo_user }}/.poetry/bin/poetry run odoo --config {{ odoo_config_file }}{{ odoo_logfile and ' --logfile %s' % odoo_logfile }}
 KillMode=mixed
 Restart=on-failure
 {% for name, value in odoo_init_env.items() | list %}

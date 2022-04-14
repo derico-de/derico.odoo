@@ -6,3 +6,7 @@
     daemon-reload: yes
   when: ansible_service_mgr == 'systemd'
 
+- name: reload caddy
+  service:
+    name: caddy
+    state: reloaded
